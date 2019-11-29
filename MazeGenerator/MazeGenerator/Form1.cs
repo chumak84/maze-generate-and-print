@@ -16,27 +16,31 @@ namespace MazeGenerator
         PrintDocument printDoc = new PrintDocument();
         PrinterSettings _printerSettings;
 
-        int mXCount = 70;
-        int mYCount = 100;
-        Dictionary<int, List<int>> _connections;
+        const int DEFAULT_MAZE_WIDTH = 70;
+        const int DEFAULT_MAZE_HEIGHT = 100;
+
+        Maze _maze;
 
         public Form1()
         {
             InitializeComponent();
             printDoc.PrintPage += PrintDoc_PrintPage;
+            nbXCount.Value = DEFAULT_MAZE_WIDTH;
+            nbYCount.Value = DEFAULT_MAZE_HEIGHT;
         }
 
         private void PrintDoc_PrintPage(object sender, PrintPageEventArgs e)
         {
             var rf = e.PageSettings.PrintableArea;
             var g = e.Graphics;
-             
-            float startX = 0f;
-            float startY = 0f;
+
+            int mXCount = _maze.XComponentCount;
+            int mYCount = _maze.YComponentCount;
+
             float width = rf.Width;
             float height = rf.Height;
-            float colWidth = width / mXCount;
-            float colHeight = height / mYCount;
+            float colWidth = width / _mXCount;
+            float colHeight = height / _mYCount;
 
             float x1 = 0;
             //float x2 = colWidth;
@@ -45,19 +49,19 @@ namespace MazeGenerator
 
             Pen p = Pens.Black;
             int element = 0;
-            int lest = mXCount * mYCount - 1;
-            for(int iY = 0; iY < mYCount; iY++)
+            int lest = _mXCount * _mYCount - 1;
+            for(int iY = 0; iY < _mYCount; iY++)
             {
                 x1 = 0;
-                for(int iX = 0; iX < mXCount; iX++)
+                for(int iX = 0; iX < _mXCount; iX++)
                 {
-                    if (element != 0 && !_connections[element].Contains(element - mXCount))
+                    if (element != 0 && !_connections[element].Contains(element - _mXCount))
                         DrawTop(g, colWidth, x1, y1, p);
                     if(!_connections[element].Contains(element - 1))
                         DrawLeft(g, colHeight, x1, y1, p);
                     if (!_connections[element].Contains(element + 1))
                         DrawRight(g, colWidth, colHeight, x1, y1, p);
-                    if(element != lest && !_connections[element].Contains(element + mXCount))
+                    if(element != lest && !_connections[element].Contains(element + _mXCount))
                         DrawBottom(g, colWidth, colHeight, x1, y1, p);
                     element++;
                     x1 += colWidth;
@@ -88,8 +92,8 @@ namespace MazeGenerator
 
         private void btnPrint_Click(object sender, EventArgs e)
         {
-            mXCount = (int)nbXCount.Value;
-            mYCount = (int)nbYCount.Value;
+            _mXCount = (int)nbXCount.Value;
+            _mYCount = (int)nbYCount.Value;
 
             GenerateMaze();
 
@@ -105,81 +109,6 @@ namespace MazeGenerator
             {
                 printDoc.PrinterSettings = _printerSettings;
                 printDoc.Print();
-            }
-        }
-
-        private void GenerateMaze()
-        {
-            Random r = new Random();
-
-            int totalCount = mXCount * mYCount;
-            bool[] visited = new bool[totalCount];
-            _connections = new Dictionary<int, List<int>>(totalCount);
-            List<int> unvisitedNeighbours = new List<int>(4);
-
-            int current = 0;
-
-            Stack<int> stack = new Stack<int>();
-            //stack.Push(current);
-
-            do
-            {
-                visited[current] = true;
-
-                FillUnvisitedNeighbours(visited, unvisitedNeighbours, current);
-
-                int un;
-                if (unvisitedNeighbours.Count == 0)
-                {
-                    current = stack.Pop();
-                    continue;
-                }
-                if (unvisitedNeighbours.Count == 1)
-                {
-                    un = unvisitedNeighbours[0];
-                }
-                else
-                {
-                    un = unvisitedNeighbours[r.Next(unvisitedNeighbours.Count)];
-                }
-
-                if (!_connections.ContainsKey(current))
-                    _connections.Add(current, new List<int>());
-                if (!_connections.ContainsKey(un))
-                    _connections.Add(un, new List<int>());
-
-                _connections[current].Add(un);
-                _connections[un].Add(current);
-
-                stack.Push(current);
-                current = un;
-            }
-            while (stack.Count > 0);
-        }
-
-        private void FillUnvisitedNeighbours(bool[] visited, List<int> unvisitedNeighbours, int current)
-        {
-            unvisitedNeighbours.Clear();
-
-            if (current % mXCount != 0)
-            {
-                int leftN = current - 1;
-                if (leftN >= 0 && !visited[leftN])
-                    unvisitedNeighbours.Add(leftN);
-            }
-            int topN = current - mXCount;
-            if (topN >= 0 && !visited[topN])
-                unvisitedNeighbours.Add(topN);
-            if (current % mXCount != mXCount - 1)
-            {
-                int rightN = current + 1;
-                if (!visited[rightN])
-                    unvisitedNeighbours.Add(rightN);
-            }
-            int bottomN = current + mXCount;
-            if(bottomN < mXCount * mYCount && !visited[bottomN])
-            {
-                unvisitedNeighbours.Add(bottomN);
             }
         }
 
