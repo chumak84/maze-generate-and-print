@@ -23,6 +23,8 @@ namespace MazeGenerator
         public int YComponentCount => _yComponentCount;
         public int XComponentCount => _xComponentCount;
 
+        public Dictionary<int, List<int>> Connections => _connections;
+
         private void GenerateMaze()
         {
             Random r = new Random();
